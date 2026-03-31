@@ -33,10 +33,15 @@ coverage
 # Caches e ficheiros temporários
 .cache
 .parcel-cache
+.vite
 .eslintcache
 *.tsbuildinfo
 tmp
 temp
+
+# Chaves / certificados locais (nunca versionar)
+*.pem
+*.p12
 
 # IDE / SO
 .idea

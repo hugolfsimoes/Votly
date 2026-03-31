@@ -1,7 +1,46 @@
+# Dependências
 node_modules
+
+# Build / artefactos compilados
 dist
+build
+out
+.next
+.nuxt
+.turbo
+.vercel
+storybook-static
+
+# Variáveis de ambiente (manter *.example no repositório)
 .env
-.env.local
+.env.*
+!.env.example
+!**/.env.example
+!**/.env*.example
+
+# Logs
 *.log
+logs
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Testes e cobertura
 coverage
+.nyc_output
+
+# Caches e ficheiros temporários
+.cache
+.parcel-cache
+.eslintcache
+*.tsbuildinfo
+tmp
+temp
+
+# IDE / SO
+.idea
+*.suo
+*.sw?
 .DS_Store
+Thumbs.db

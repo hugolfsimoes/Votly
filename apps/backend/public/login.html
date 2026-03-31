@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="pt">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Entrar — Votly</title>
+    <link rel="stylesheet" href="/css/theme.css" />
+  </head>
+  <body>
+    <div class="shell">
+      <div class="topbar">
+        <a href="/login.html" class="brand">VOT<span>LY</span></a>
+      </div>
+      <div class="card">
+        <h1>Entrar</h1>
+        <p class="muted">Acede aos teus grupos e votações.</p>
+        <div id="err" class="error-banner" role="alert"></div>
+        <form id="form">
+          <div class="field">
+            <label for="email">Email</label>
+            <input id="email" name="email" type="email" autocomplete="email" required />
+          </div>
+          <div class="field">
+            <label for="password">Palavra-passe</label>
+            <input
+              id="password"
+              name="password"
+              type="password"
+              autocomplete="current-password"
+              required
+            />
+          </div>
+          <div class="btn-row">
+            <button type="submit" class="btn btn--primary">Entrar</button>
+          </div>
+        </form>
+        <p class="muted" style="margin-top: 1.25rem">
+          Sem conta? <a href="/register.html">Criar registo</a>
+        </p>
+      </div>
+    </div>
+    <script src="/js/app.js"></script>
+    <script>
+      (function () {
+        if (Votly.getToken()) {
+          window.location.href = '/groups.html';
+          return;
+        }
+        var form = document.getElementById('form');
+        var err = document.getElementById('err');
+        form.addEventListener('submit', function (e) {
+          e.preventDefault();
+          Votly.clearError(err);
+          var email = document.getElementById('email').value.trim();
+          var password = document.getElementById('password').value;
+          Votly.request('/auth/signin', {
+            method: 'POST',
+            body: { email: email, password: password },
+          })
+            .then(function (data) {
+              Votly.setToken(data.accessToken);
+              window.location.href = '/groups.html';
+            })
+            .catch(function (error) {
+              Votly.showError(err, error);
+            });
+        });
+      })();
+    </script>
+  </body>
+</html>

@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="pt">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Grupos — Votly</title>
+    <link rel="stylesheet" href="/css/theme.css" />
+  </head>
+  <body>
+    <div class="shell shell--wide">
+      <div class="topbar">
+        <a href="/groups.html" class="brand">VOT<span>LY</span></a>
+        <button type="button" class="btn btn--ghost" id="logout">Sair</button>
+      </div>
+      <div id="err" class="error-banner" role="alert"></div>
+      <div class="split split--2">
+        <div>
+          <h2 class="section-title" style="margin-top: 0">Novo grupo</h2>
+          <div class="card">
+            <form id="create-form">
+              <div class="field">
+                <label for="gname">Nome</label>
+                <input id="gname" required maxlength="120" />
+              </div>
+              <div class="field">
+                <label for="gdesc">Descrição (opcional)</label>
+                <textarea id="gdesc" maxlength="2000"></textarea>
+              </div>
+              <button type="submit" class="btn btn--primary">Criar grupo</button>
+            </form>
+          </div>
+        </div>
+        <div>
+          <h2 class="section-title" style="margin-top: 0">Os meus grupos</h2>
+          <ul id="list" class="list"></ul>
+          <p id="empty" class="empty" style="display: none">Ainda não tens grupos.</p>
+        </div>
+      </div>
+    </div>
+    <script src="/js/app.js"></script>
+    <script>
+      (function () {
+        if (!Votly.requireAuth()) return;
+        var err = document.getElementById('err');
+        var listEl = document.getElementById('list');
+        var emptyEl = document.getElementById('empty');
+
+        document.getElementById('logout').addEventListener('click', function () {
+          Votly.logout();
+        });
+
+        function render(groups) {
+          listEl.innerHTML = '';
+          if (!groups || !groups.length) {
+            emptyEl.style.display = 'block';
+            return;
+          }
+          emptyEl.style.display = 'none';
+          groups.forEach(function (g) {
+            var li = document.createElement('li');
+            var a = document.createElement('a');
+            a.className = 'list-item';
+            a.href = '/group.html?id=' + encodeURIComponent(g.id);
+            var title = document.createElement('strong');
+            title.textContent = g.name;
+            a.appendChild(title);
+            if (g.description) {
+              var p = document.createElement('div');
+              p.className = 'desc';
+              p.textContent = g.description;
+              a.appendChild(p);
+            }
+            li.appendChild(a);
+            listEl.appendChild(li);
+          });
+        }
+
+        function load() {
+          Votly.clearError(err);
+          Votly.request('/groups')
+            .then(render)
+            .catch(function (e) {
+              Votly.showError(err, e);
+            });
+        }
+
+        document.getElementById('create-form').addEventListener('submit', function (e) {
+          e.preventDefault();
+          Votly.clearError(err);
+          var name = document.getElementById('gname').value.trim();
+          var description = document.getElementById('gdesc').value.trim();
+          var body = { name: name };
+          if (description) body.description = description;
+          Votly.request('/groups', { method: 'POST', body: body })
+            .then(function () {
+              document.getElementById('gname').value = '';
+              document.getElementById('gdesc').value = '';
+              load();
+            })
+            .catch(function (error) {
+              Votly.showError(err, error);
+            });
+        });
+
+        load();
+      })();
+    </script>
+  </body>
+</html>

@@ -1,0 +1,24 @@
+{
+  "name": "votly",
+  "private": true,
+  "packageManager": "pnpm@9.15.9",
+  "pnpm": {
+    "overrides": {
+      "typescript": "5.7.2"
+    }
+  },
+  "scripts": {
+    "postinstall": "pnpm --filter votly-api exec prisma generate",
+    "dev:api": "pnpm --filter votly-api dev",
+    "dev:web": "pnpm --filter votly-web dev",
+    "dev": "concurrently -n api,web -c blue,magenta \"pnpm dev:api\" \"wait-on tcp:127.0.0.1:3000 && pnpm dev:web\"",
+    "build": "pnpm --filter votly-api build && pnpm --filter votly-web build",
+    "lint": "pnpm --filter votly-api lint",
+    "prisma:generate": "pnpm --filter votly-api prisma:generate",
+    "prisma:migrate": "pnpm --filter votly-api prisma:migrate"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2",
+    "wait-on": "^8.0.1"
+  }
+}

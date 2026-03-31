@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="pt">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Item — Votly</title>
+    <link rel="stylesheet" href="/css/theme.css" />
+  </head>
+  <body>
+    <div class="shell">
+      <div class="topbar">
+        <a href="/groups.html" class="brand">VOT<span>LY</span></a>
+        <div style="display: flex; gap: 0.5rem; align-items: center">
+          <a
+            href="/groups.html"
+            class="btn btn--ghost"
+            style="text-decoration: none"
+            >Grupos</a
+          >
+          <button type="button" class="btn btn--ghost" id="logout">Sair</button>
+        </div>
+      </div>
+      <div id="err" class="error-banner" role="alert"></div>
+      <p class="muted" id="nav-line"></p>
+      <h1 id="title">Item</h1>
+      <div class="card">
+        <p class="muted" id="rank-line"></p>
+        <p>O teu voto (1 a 10):</p>
+        <div class="stars" id="stars"></div>
+        <p class="muted" id="vote-hint" style="margin-top: 1rem"></p>
+        <div class="btn-row">
+          <a id="back-group" class="btn btn--ghost" href="#">Voltar ao grupo</a>
+        </div>
+      </div>
+    </div>
+    <script src="/js/app.js"></script>
+    <script>
+      (function () {
+        if (!Votly.requireAuth()) return;
+        var params = new URLSearchParams(window.location.search);
+        var groupId = params.get('groupId');
+        var itemId = params.get('id');
+        if (!groupId || !itemId) {
+          window.location.href = '/groups.html';
+          return;
+        }
+
+        var err = document.getElementById('err');
+        var groupName = '';
+
+        document
+          .getElementById('logout')
+          .addEventListener('click', function () {
+            Votly.logout();
+          });
+
+        document.getElementById('back-group').href =
+          '/group.html?id=' + encodeURIComponent(groupId);
+
+        function buildStars(onPick) {
+          var wrap = document.getElementById('stars');
+          wrap.innerHTML = '';
+          for (var v = 1; v <= 10; v++) {
+            (function (value) {
+              var b = document.createElement('button');
+              b.type = 'button';
+              b.className = 'star-btn';
+              b.textContent = String(value);
+              b.setAttribute('aria-label', 'Nota ' + value);
+              b.addEventListener('click', function () {
+                onPick(value);
+              });
+              wrap.appendChild(b);
+            })(v);
+          }
+        }
+
+        function highlightStars(n) {
+          var btns = document.querySelectorAll('.star-btn');
+          btns.forEach(function (b, i) {
+            if (i < n) b.classList.add('is-active');
+            else b.classList.remove('is-active');
+          });
+        }
+
+        function load() {
+          Votly.clearError(err);
+          Promise.all([
+            Votly.request('/groups'),
+            Votly.request('/items?groupId=' + encodeURIComponent(groupId)),
+            Votly.request('/ranking?groupId=' + encodeURIComponent(groupId)),
+          ])
+            .then(function (parts) {
+              var groups = parts[0];
+              var items = parts[1];
+              var ranking = parts[2];
+              var g = groups.find(function (x) {
+                return x.id === groupId;
+              });
+              groupName = g ? g.name : 'Grupo';
+              var item = items.find(function (x) {
+                return x.id === itemId;
+              });
+              if (!item) throw new Error('Item não encontrado');
+              document.getElementById('title').textContent = item.title;
+              document.getElementById('nav-line').textContent =
+                groupName + ' · item para votação';
+
+              var row = ranking.find(function (r) {
+                return r.itemId === itemId;
+              });
+              var rankLine = document.getElementById('rank-line');
+              if (row) {
+                rankLine.textContent =
+                  'Posição #' +
+                  row.rank +
+                  ' · ' +
+                  row.voteSum +
+                  ' pontos · ' +
+                  row.voteCount +
+                  ' votos';
+              } else {
+                rankLine.textContent = 'Ainda sem posição no ranking.';
+              }
+
+              buildStars(function (value) {
+                Votly.clearError(err);
+                Votly.request('/votes', {
+                  method: 'POST',
+                  body: { itemId: itemId, value: value },
+                })
+                  .then(function () {
+                    highlightStars(value);
+                    document.getElementById('vote-hint').textContent =
+                      'Voto registado: nota ' + value + '.';
+                    return Votly.request(
+                      '/ranking?groupId=' + encodeURIComponent(groupId),
+                    );
+                  })
+                  .then(function (r2) {
+                    var r = r2.find(function (x) {
+                      return x.itemId === itemId;
+                    });
+                    if (r) {
+                      document.getElementById('rank-line').textContent =
+                        'Posição #' +
+                        r.rank +
+                        ' · ' +
+                        r.voteSum +
+                        ' pontos · ' +
+                        r.voteCount +
+                        ' votos';
+                    }
+                  })
+                  .catch(function (e) {
+                    Votly.showError(err, e);
+                  });
+              });
+
+              Votly.request(
+                '/my-vote?itemId=' + encodeURIComponent(itemId),
+              )
+                .then(function (mv) {
+                  if (!mv || mv.value == null) return;
+                  var v = Number(mv.value);
+                  if (v < 1 || v > 10) return;
+                  highlightStars(v);
+                  document.getElementById('vote-hint').textContent =
+                    'O teu voto: nota ' + v + '.';
+                })
+                .catch(function () {});
+            })
+            .catch(function (e) {
+              Votly.showError(err, e);
+            });
+        }
+
+        load();
+      })();
+    </script>
+  </body>
+</html>

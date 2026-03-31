@@ -1,0 +1,48 @@
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500;600;700&family=Rajdhani:wght@400;500;600;700&display=swap');
+
+@import 'tailwindcss';
+
+@source '../../../packages/ui/src/**/*.{ts,tsx}';
+
+@theme {
+  --font-sans: 'Rajdhani', ui-sans-serif, system-ui, sans-serif;
+  --font-display: 'Orbitron', ui-sans-serif, sans-serif;
+
+  --color-votly-bg: #303030;
+  --color-votly-elevated: #3a3a3a;
+  --color-votly-input: #262626;
+  --color-votly-muted: #b8b8b8;
+  --color-votly-accent: #b794f6;
+  --color-votly-accent-hover: #c9b0ff;
+  --color-votly-accent-muted: #7c5cbf;
+  --color-votly-danger: #f87171;
+  --color-votly-primary-ink: #1a1025;
+
+  --radius-votly: 10px;
+}
+
+@layer base {
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+
+  html {
+    font-size: 18px;
+  }
+
+  body {
+    margin: 0;
+    min-height: 100vh;
+    background-color: var(--color-votly-bg);
+    color: white;
+    font-family: var(--font-sans);
+    font-weight: 500;
+    line-height: 1.45;
+  }
+
+  #root {
+    min-height: 100vh;
+  }
+}
